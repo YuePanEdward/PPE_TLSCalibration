@@ -41,7 +41,7 @@ OP = [];
 if isempty(fn) || ischar(fn)
     fn = getfname(fn,1,{'*.txt','OP files (*.txt)';...
                                '*.*','All Files (*.*)' },...
-                               'Select OP file',[mfilename,'_in'],1);
+                               'Select OP file',[mfilename,'_in'],0);
                            
     if isempty(fn)  % terminate the function if the user has cancelled
         return;
