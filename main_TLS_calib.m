@@ -25,7 +25,7 @@ sigma_alpha = 0.01*deg2rad_ratio;     % vertical angle (rad)
 
 % iteration thresholds
 max_in_iter=25;
-max_ex_iter=10;
+max_ex_iter=1;
 
 
 %% I. Import data
@@ -88,10 +88,7 @@ disp(['Assign the initial value for [', num2str(unknown_count), '] unknowns done
 
 disp('---------IV. Apply adjustment iteratively--------');
 
-ex_iter_count=0;
-
 delta_t = 1e-6; % delta_d for numerical derivative
-delta_t_vec = delta_t * ones(1,unknown_count);
 
 ob_count = 3 * op_count * scan_count; % n = 3Ns
 
@@ -116,6 +113,7 @@ disp('Assign the initial weight matrix done');
 
 x_temp=x_0; % assign initial value for unknown vector
 P_mat_temp=P_mat_0;
+ex_iter_count=0;
 
 % External loop for detecting and removing outliers 
 % iterate until reaching the termination criteria 
@@ -123,7 +121,6 @@ while (ex_iter_count < max_ex_iter)
     
     %update
     ex_iter_count = ex_iter_count + 1;
-    x_temp=x_temp+x_p;
     
     % Adjustment (internal loop)
     % struct temp_adjustment_data
@@ -131,7 +128,7 @@ while (ex_iter_count < max_ex_iter)
     temp_adjustment_data.y=y;
     temp_adjustment_data.P=P_mat_temp;
     temp_adjustment_data.sigma_0=sigma_0;
-    temp_adjustment_data.dt=delta_t_vec;
+    temp_adjustment_data.dt=delta_t;
     temp_adjustment_data.op=ops;
     temp_adjustment_data.scans=scans_in_sphe;
     temp_adjustment_data.ap_count=ap_count;
@@ -139,6 +136,7 @@ while (ex_iter_count < max_ex_iter)
     
     [x_p, Q_xx_mat, res_vec]= RunGMMAdjust(temp_adjustment_data);
     
+   
     
 end
 

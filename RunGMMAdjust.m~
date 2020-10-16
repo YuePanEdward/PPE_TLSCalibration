@@ -30,12 +30,11 @@ while (iter_count < adjustment_data_struct.max_iter_count)
     b_vec = zeros(ob_count,1);
     
     for i = 1:scan_count
-       cur_scan_sphe = scans_sphe{1,i};
+       cur_scan_sphe = scans_sphe{i};
        for j = 1:op_count
           for k = 1:unknown_count % calculate derivative for APs
-              A_mat(ob_index:ob_index+2, k) = Derivative(ops(j,:), cur_scan_sphe(j,:), x_0(1:ap_count), x_0(ap_count+(i-1)*6+1:ap_count+i*6),dt, k);
-              
-              funct= ObsFunction(ops(j,:), cur_scan_sphe(j,:), x_0(1:ap_count), x_0(ap_count+(i-1)*6+1:ap_count+i*6));
+              A_mat(ob_index:ob_index+2, k) = Derivative(ops(j,:), cur_scan_sphe(j,:), x_0(1:ap_count), x_0(ap_count+1:end),dt, k);
+              funct= ObsFunction(ops(j,:), cur_scan_sphe(j,:), x_0(1:ap_count), x_0(ap_count+1:end));
               y_cur =y(ob_index:ob_index+2,1);
               b_vec(ob_index:ob_index+2 ,1) = y_cur - funct;
           end
