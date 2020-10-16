@@ -1,0 +1,79 @@
+% -------------------------------------------------------------------------
+% TLS AP-file: true values used for simulation PPE/TLS (AW, 2018-09-27)
+%              -> Data set Testdata_1
+% File based on DemoAP.txt
+%
+% The file can be loaded into Matlab using the function Read_TLS_APFile.
+% -------------------------------------------------------------------------
+
+% Type (charcter array) - so far only "Lichti 2007" is implemented,
+%    corresponding to eqs. (7), (8), (9) in Lichti D (2007) Error modelling,
+%    calibration and analysis of an AM?CW terrestrial laser scanner system.
+%    ISPRS Journal of Photogrammetry & Remote Sensing 61 (2007) 307?324.
+%
+APTYPE = Lichti 2007
+
+% Description (character array) - short description of source/purpose/ID of
+%    this AP data set (only 1 line: no linebreaks within description);
+%    leading and trailing whitespace will be ignored.
+APDSCR = Assumed true APs for PPE Testdata_2, AW, 2018-09-27 (hypothetical scanner 1)
+
+% Parameter definitions, started by keyword APSTRT and ended by AP_END,
+% the rows in between contain the following data (whitespace separated,
+% no entries may be omitted): 
+%    unique integer id
+%       used for association with covariances later on; the concrete ids 
+%       can be assigned arbitrarily but it is recommended to use a trans-
+%       parent scheme for better readability of the file
+%    parameter name
+%       short string defining the respective parameter, no whitespace
+%       within the name, the available names depend on the respective
+%       model type (APTYPE) and are defined e.g. within Read_TLS_APFile.m
+%    value
+%       the numeric value (scalar) of the parameter (units depend on the 
+%       parameter and are also defined e.g. in Read_TLS_APFile.m) 
+%    standard deviation
+%       standard deviation of the numeric value in the same units as the
+%       value; 0 indicates a fixed value (e.g. used but not estimated
+%       during calibration); >0 indicates a stochastic value (e.g. value
+%       is used as priori with given standard deviation during calibration);
+%       NaN indicates that the standard deviation is not known (e.g. the
+%       value will only be used as starting value (approximate value)
+%       during calibration)
+%    % comment a trailing comment can be appended, e.g. to add some
+%       explanation regarding the value, the units etc.; it needs to
+%       be preceded by the %-sign
+APSTRT
+
+%id name value        std          optional comment
+%-- ---- ------------ ------------ ----------------------------------------
+ 10 a0     3.0         0.0          % range offset /mm
+ 21 b1     -.5         0.0          % collimation axis error /mrad
+ 22 b2      .5         0.0          % trunnion axis error /mrad
+ 30 c0     0.0         0.0          % elevation offset /mrad
+
+AP_END
+
+% Optional covariance definition started by the keyword VCSTRT
+% and ended by the keyword VC_END. The rows in between ontain the following
+% data (whitespace separated, no entries may be omitted): 
+%    integer id 1
+%    integer if 2
+%       unique ids as assigned above (APSTRT/APEND) to the two parameters
+%       whose covariance is to be defined here. Note: variances cannot
+%       be defined (the standard deviation is given above, instead), so
+%       the two ids must not be identical; pairs not listed in this section
+%       are assumed to be uncorrelated i.e., covariances = 0 need not
+%       be listed here
+%    value
+%       numeric value of the covariance (its absolute value must not 
+%       exceed the product of the two standard deviations given above)
+VCSTRT
+
+%id1  id2 value        
+%--- ---- ------------
+%  10   11  2.3e-7       % a0-a1: just given as an example to have one
+
+VC_END
+
+       

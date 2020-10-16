@@ -1,0 +1,133 @@
+% -------------------------------------------------------------------------
+
+% TLS calibration object point file (OP file) (AW, 2015-05-19)
+%
+% Template file for OP input/output during TLS calibration, used to
+% (i) define approximate coordinates of OPs in external reference frame,
+% (ii) provide observed coordinates of OPs in external reference frame,
+% (iii) report estimated coordinates of OPs in external reference frame
+%
+
+% The file can be loaded into Matlab using the function Read_OPFile.
+% -------------------------------------------------------------------------
+
+
+% Description (character array) - short description of source/purpose/ID of
+%    this OP data set (only 1 line: no linebreaks within description);
+%    leading and trailing whitespace will be ignored.
+
+OPDSCR = True OP coordinates for Testdata_2 / PPE 2018, TLS 
+
+% Name of coordinate system (free text, leading and trailing white space
+% ignored)
+
+OPSYSN = RCF-ETH
+
+% Handedness of OP coordinate system: 'right' for right hand, 'left'
+% for left hand, default is 'right'
+
+OPHAND = right
+
+% Coordinates of individual points, started by keyword OPSTRT and ended 
+% by OP_END, the rows in between contain the following data (whitespace 
+% separated, no entries may be omitted, except the standard deviation/vcm):
+%
+%    unique point id
+%       used for association with TLS measurements, and also for covariances
+%       later on in this file; the ids must be positive integers but they can
+%       be in arbitrary order
+%    X, Y, Z
+%       X-, Y- and Z-coordinates in m (no comma between the values)
+%    standard deviations or elements of vcm
+%       1 value => standard deviation in m (same for all 3 coordinates,
+%                  coordinates assumed uncorrelated)
+%                  if the value is 0, the point is considered fixed (no
+%                  residuals or corrections estimated for this point);
+%                  if the value is NaN, the coordinates are used as
+%                  initial approximations/start values for the estimation;
+%                  otherwise (and in case there are 3 or 6 values), the
+%                  point will be treated as externally observed with the
+%                  given prior uncertainty
+%       3 values => standard deviations in m of X, Y, and Z, respectively
+%                  (coordinates assumed uncorrelated)
+%       6 values => vectorized lower triangle of variance-covariance matrix
+%                   of this point in m^2, i.e., sxx, sxy, sxz, syy, syz, szz
+%       no value => equal to NaN (i.e., point is unknown, values are 
+%                   approximations only)
+
+%
+% comment 
+%    a trailing comment can be appended, e.g. to add some
+%       explanation regarding the point (e.g. the type of marker); it needs to
+%       be preceded by the %-sign
+
+OPSTRT
+
+% id      X /m         Y /m         Z /m        std /m, or vcm / m^2 
+%----- ------------ ------------ ------------ ---------------------------------------------------------
+    1       0.3527       0.0000       2.0000  
+    2       0.6304       0.3640       2.0000  
+    3       0.1763       0.3054       2.0000  
+    4       0.0000       0.7279       2.0000  
+    5      -0.1763       0.3054       2.0000  
+    6      -0.6304       0.3640       2.0000  
+    7      -0.3527       0.0000       2.0000  
+    8      -0.6304      -0.3640       2.0000  
+    9      -0.1763      -0.3054       2.0000  
+   10      -0.0000      -0.7279       2.0000  
+   11       0.1763      -0.3054       2.0000  
+   12       0.6304      -0.3640       2.0000  
+   13       0.7279       0.0000      -2.0000  
+   14       1.0000       0.5774      -2.0000  
+   15       0.3640       0.6304      -2.0000  
+   16       0.0000       1.1547      -2.0000  
+   17      -0.3640       0.6304      -2.0000  
+   18      -1.0000       0.5774      -2.0000  
+   19      -0.7279       0.0000      -2.0000  
+   20      -1.0000      -0.5774      -2.0000  
+   21      -0.3640      -0.6304      -2.0000  
+   22      -0.0000      -1.1547      -2.0000  
+   23       0.3640      -0.6304      -2.0000  
+   24       1.0000      -0.5774      -2.0000  
+   25       4.0000       0.7956       0.3568  
+   26       4.0000       2.6727      -0.4209  
+   27       2.6727       4.0000       0.4209  
+   28       0.7956       4.0000      -0.3568  
+   29      -0.7956       4.0000       0.3568  
+   30      -2.6727       4.0000      -0.4209  
+   31      -4.0000       2.6727       0.4209  
+   32      -4.0000       0.7956      -0.3568  
+   33      -4.0000      -0.7956       0.3568  
+   34      -4.0000      -2.6727      -0.4209  
+   35      -2.6727      -4.0000       0.4209  
+   36      -0.7956      -4.0000      -0.3568  
+   37       0.7956      -4.0000       0.3568  
+   38       2.6727      -4.0000      -0.4209  
+   39       4.0000      -2.6727       0.4209  
+   40       4.0000      -0.7956      -0.3568  
+
+OP_END
+
+% Optional covariance definition started by the keyword VCSTRT
+% and ended by the keyword VC_END. The rows in between contain the following
+% data (whitespace separated, no entries may be omitted): 
+%    point id 1
+%    point id 2
+%       ids as assigned above (OPSTRT/OP_END). Note: the two ids must
+%       not be identical (data referring to only 1 point are given above);
+%       pairs of points not listed in this section are assumed to be 
+%       uncorrelated i.e., covariances = 0 need not
+%       be listed here
+%    9 values => vectorized 3x3 block of the variance-covariance matrix
+%       in m^2
+%
+% Note: since the vcm is symmetric, only one of the respective two blocks
+%       P1-P2 or P2-P1 can be defined, i.e. each pair of point ids (ignoring)
+%       theirs sequence can only show up once.
+
+VCSTRT
+
+% id1    id2  vcm /m^2        
+%----- ------ ------------------------------------------------------------------------------------------ 
+
+VC_END
