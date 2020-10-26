@@ -116,6 +116,8 @@ P_mat_temp=P_mat_0;
 ex_iter_count=0;
 
 % External loop for detecting and removing outliers 
+% Introduce the structure temp_adjustment_data
+temp_adjustment_data = struct('x',x_temp, 'y',y, 'P',P_mat_temp, 'sigma_0', sigma_0, 'dt', delta_t, 'op', ops, 'scans', scans_in_sphe, 'ap_count', ap_count, 'max_iter_count', max_in_iter);
 % iterate until reaching the termination criteria 
 while (ex_iter_count < max_ex_iter)
     
@@ -124,7 +126,7 @@ while (ex_iter_count < max_ex_iter)
     
     % Adjustment (internal loop)
     % struct temp_adjustment_data
-    temp_adjustment_data.x=x_temp;
+    temp_adjustment_data.x=x_temp; 
     temp_adjustment_data.y=y;
     temp_adjustment_data.P=P_mat_temp;
     temp_adjustment_data.sigma_0=sigma_0;
