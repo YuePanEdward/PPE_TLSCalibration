@@ -54,7 +54,7 @@ while (iter_count < adjustment_data_struct.max_iter_count)
     
 end
 
-x_p = x_0;
+x_p = x_0; % why do you not give out just x_0 instead of saving it separatly as x_p
 %disp(['Adjustment results of the unknown vector: ', num2str(x_i)]);
 
 % TODO
