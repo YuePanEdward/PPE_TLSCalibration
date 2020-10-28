@@ -1,9 +1,9 @@
-function funct = ObsFunction(op, sp, aps, eps)
+function obs = ObsFunction(op, sp, aps, eps)
     %ObsFunction: the functional model for the GMM parameter estimation
     % Calculated in spherical coordinate (rho, theta, alpha)]
     
-    % input: op (1 x 3)
-    %        sp (1 x 3)
+    % input: op (1 x 3)  X,Y,Z in cardestian coordinate system
+    %        sp (1 x 3)  
  
     
     alpha = sp(3);
@@ -13,14 +13,14 @@ function funct = ObsFunction(op, sp, aps, eps)
     d_spher_coor = [d_rho, d_theta, d_alpha]; % 1 x 3
     
     % nav toolbox required for eul2rotm function
-    R_mat=eul2rotm(-eps(1:3)','XYZ'); % reconstruct rotation matrix from euler angles (anti-clockwise,rad)
+    R_mat=eul2rotm(eps(1:3)','XYZ'); % reconstruct rotation matrix from euler angles (anti-clockwise,rad)
     t_vec = eps(4:6); % translation vector
     
-    est_scan_in_cart = (R_mat * (op'-t_vec))';  % 1 x 3
+    est_scan_in_cart = (R_mat' * (op'-t_vec))';  % 1 x 3
     
     est_scan_in_sphe = cart2sphe(est_scan_in_cart); % 1 x 3
 	
     % get the function defined in spherical coordinate
-	funct = (est_scan_in_sphe + d_spher_coor)'; % 3 x 1
+	obs = (est_scan_in_sphe + d_spher_coor)'; % 3 x 1
     
 end

@@ -15,17 +15,12 @@ if (index < ap_count+1)  % aps
    f1 = ObsFunction(op, sp, cur_aps, eps);
 else   % eps
    cur_eps = eps;
-   eps_index = mod(index-ap_count,6)+1;
+   eps_index = mod(index-ap_count-1,6)+1;
    cur_eps(eps_index)=eps(eps_index)+dt;
    f2 = ObsFunction(op, sp, aps, cur_eps); % 3 x 1
    
    cur_eps(eps_index)=eps(eps_index)-dt;
    f1 = ObsFunction(op, sp, aps, cur_eps); % 3 x 1
-   
-%    if index > 10
-%       f1
-%       f2
-%    end
 end
 
 jacobi = (f2-f1)/(2*dt); % 3 x 1
