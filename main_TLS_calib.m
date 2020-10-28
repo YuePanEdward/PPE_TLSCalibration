@@ -16,7 +16,6 @@ disp('PPE TLS calibration software');
 
 % Define constants
 % measurment standard deviation:
-%(guess)
 deg2rad_ratio=pi/180;
 sigma_0 = 0.001;                      % prior unit weight standard deviation (m)
 sigma_rho = 0.005;                    % range measurment (m)
@@ -24,20 +23,30 @@ sigma_theta = 0.01*deg2rad_ratio;     % horizontal angle (rad)
 sigma_alpha = 0.01*deg2rad_ratio;     % vertical angle (rad)
 
 % iteration thresholds
-max_in_iter=20;
-max_ex_iter=1;
-incre_ratio_thre = 1e-3;
+max_in_iter=20;                       % max iteration number for the internal loop (for gauss-markov parameter estimation)
+max_ex_iter=5;                       % max iteration number for the external loop (for danish outlier detection and removal)
+incre_ratio_thre = 1e-3;              % internal loop convergence condition
 
+% pirpr knowledge for observation plausibility check
+max_rou = 10.0;                       % max pausible range measurement value (m)  
+max_alpha = 90*deg2rad_ratio;         % max pausible elevation angle value (rad)
 
 %% I. Import data
 
 disp('---------I. Data Import--------');
 
 % Set the data path and prefix here
-data_path = 'Testdata_1';        
-data_prefix = 'PPE_TLS_T1_';  
-% data_path = 'Testdata_2';        
+% [Test_data]
+%data_path = strcat ('Test_data', filesep, 'Testdata_1');        
+%data_prefix = 'PPE_TLS_T1_';  
+% data_path = strcat ('Test_data', filesep, 'Testdata_2');      
 % data_prefix = 'PPE_TLS_T2_';   
+
+% [Final_data (with outlier)]
+data_path = strcat ('Final_data', filesep, 'Finaldata_1');        
+data_prefix = 'PPE_TLS_Fa_';  
+% data_path = strcat ('Final_data', filesep, 'Finaldata_2');      
+% data_prefix = 'PPE_TLS_Fb_'; 
 
 % use filesep to represent / or \ on different operating system
 scans_path=strcat(data_path, filesep, 'Scans', filesep); 
@@ -66,6 +75,27 @@ for i=1:scan_count
 end
 
 disp(['Cart2Spher convertion done for [',num2str(scan_count), '] scans']);
+
+%% (Optional: mannually add some outliers)
+
+
+
+%% (Optional: plausibility check)
+outlier_mask=ones(op_count * scan_count, 1);
+pre_outlier_count=0;
+
+% Regard those measurements with too large range and elevation angle as outlier
+for i=1:scan_count  
+    for j=1:op_count
+        temp_rou = scans_in_sphe{i}(j,1);
+        temp_alpha = scans_in_sphe{i}(j,3);
+        if(temp_rou > max_rou || temp_alpha > max_alpha)
+            outlier_mask((i-1)*op_count+j,1)=0;
+            pre_outlier_count=pre_outlier_count+1;
+        end        
+    end
+end
+disp(['Pre-plausibility check done for [',num2str(op_count * scan_count), '] measurements, [', num2str(pre_outlier_count), '] outliers found.']);   
 
 %% III. Get initial guess
 
@@ -118,22 +148,57 @@ x_temp=x_0; % assign initial value for unknown vector
 P_mat_temp=P_mat_0;
 ex_iter_count=0;
 
-outlier_mask=zeros(op_count * scan_count, 1);
-
 % External loop for detecting and removing outliers 
+
+
 % Introduce the structure temp_adjustment_data
-% documentation (comments here)
+% the definition of each field: 
+%  - x: initial guess of unknown vector
+%  - y: observation vector
+%  - P: weight matrix
+%  - sigma_0: unit weight standard deviation
+%  - dt: auto-derivative increment value
+%  - op: object points' coordinate in cartesian system
+%  - scans: a cell storing the measurements of the object points in each
+%  scan's spherical system
+%  - ap_count: number of the additional parameters
+%  - max_iter_count: maximum iteration number of the inner-loop
+%  - incre_ratio_thre: threshold for the ratio of the unknown value's
+%  increment of the adjacent iterations, once the largest increment ratio
+%  among the elements in the unknown vector is smaller than this threshold,
+%  the loop would be regarded as converged
+%  - outlier_mask: mask vector for the measurements, 0 and 1 indicate the
+%  outlier and inlier respectively
+
 temp_adjustment_data = struct('x',x_temp, 'y',y, 'P',P_mat_temp, 'sigma_0',...
    sigma_0, 'dt', delta_t, 'op', ops, 'scans', {scans_in_sphe}, 'ap_count',...
    ap_count, 'max_iter_count', max_in_iter, 'incre_ratio_thre', incre_ratio_thre,...
    'outlier_mask', outlier_mask);
  
-% solved issue: to put the cell array into a struct, you need to use { }
+% [solved issue]: to put the cell array into a struct, you need to use { }
 % outside the cell array to make it a cell
-     
+
+iter_count=1;
+danish_converged=0;
+
+while (~danish_converged && iter_count < max_ex_iter)
 % iterate until reaching the termination criteria
-% Adjustment calculation
-[x_p, Q_xx_mat, res_vec]= RunGMMAdjust(temp_adjustment_data);
- 
+   
+   disp(['----Danish iteration [', num2str(iter_count), '] ----']);
+   % Adjustment calculation
+   [x_p, Q_xx_mat, res_vec]= RunGMMAdjust(temp_adjustment_data);
+   
+   % TODO: mask those measurements with too small weight
+   if (iter_count<3) 
+          danish_f=4.4;
+   else
+          danish_f=3.0;
+   end
+   w_vec = diag(P_mat_0).* (exp(-(abs(res_vec)./sigma_obs_repeat).^danish_f)).^0.05; % diagonal weight vector
+   temp_adjustment_data.P = diag(w_vec); % update weight matrix
+   
+   iter_count=iter_count+1;
+   
+end
 
 
