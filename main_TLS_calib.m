@@ -27,9 +27,12 @@ max_in_iter=20;                       % max iteration number for the internal lo
 max_ex_iter=5;                       % max iteration number for the external loop (for danish outlier detection and removal)
 incre_ratio_thre = 1e-3;              % internal loop convergence condition
 
-% pirpr knowledge for observation plausibility check
+% prior knowledge for observation plausibility check
 max_rou = 10.0;                       % max pausible range measurement value (m)  
 max_alpha = 90*deg2rad_ratio;         % max pausible elevation angle value (rad)
+
+% values for danish method
+
 
 %% I. Import data
 
