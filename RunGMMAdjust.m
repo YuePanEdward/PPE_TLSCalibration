@@ -67,14 +67,14 @@ while (iter_count < adjustment_data_struct.max_iter_count && ~is_converged)
     disp (['adjustment iteration [', num2str(iter_count),'] done']);
     
     % judge if the convergence is reached
-    if(iter_count>1 && max(abs(d_x./d_x_last)) < adjustment_data_struct.incre_ratio_thre) % for example : 1e-4
+    if(iter_count>1 && max(abs(d_x)) < adjustment_data_struct.incre_ratio_thre) % for example : 1e-4
         is_converged = 1;
         disp ('converged'); 
     end
     
     % update
     iter_count = iter_count + 1;
-    d_x_last = d_x;
+    %d_x_last = d_x;
     
 end
 
