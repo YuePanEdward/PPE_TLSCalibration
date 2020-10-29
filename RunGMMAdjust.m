@@ -104,7 +104,7 @@ end
 % solved (directly use x_0) -- Yue
  
 disp('Adjustment results of the unknown vector: ');
-x_0
+disp_unknown_vector(x_0,ap_count,scan_count);
 
 
         

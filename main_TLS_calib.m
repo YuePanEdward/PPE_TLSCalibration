@@ -4,7 +4,18 @@
 %% Brief introduction
 % Robust parameter estimation based on Gauss-Markov Model and Danish Method
 % for terristial laser scanner intrinsic and extrinsic calibration
-%% Denotations
+%% Denotations 
+% unknown_vector x: [ APs, EP1, EP2, ... ]
+% APs: [a0, b1, b2, c0],  the additional parameters for range(rou), horizontal angle(theta) 
+% and elevation angle(alpha) correction 
+% EPi: [omega, phi, kappa, t_x, t_y, t_z]_i, the extrinsic (geo-reference)
+% parameters for each scan i, which is defined according to the following
+% equation:
+% p_i   =  R_io * (p_o - t_oi)
+% namely, 
+% p_i   =  Rx(omega) * Ry(phi) * Rz(keppa) * (p_o - [t_x, t_y, t_z]'),
+% where p_i is the point coordinate in scanner i's coordinate system
+% p_o is the point coordinate in external object coordinate system
 
 
 %% Preparation
@@ -122,6 +133,7 @@ for i=1:scan_count
 end
 
 disp(['Assign the initial value for [', num2str(unknown_count), '] unknowns done']);
+disp_unknown_vector(x_0,ap_count,scan_count);
 
 %% IV. Conduct adjustment
 
