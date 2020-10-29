@@ -14,7 +14,7 @@ function obs = ObsFunction(op, sp, aps, eps)
     
     % nav toolbox required for eul2rotm function
     % R_so
-    R_mat=eul2rotm(-eps(1:3)','XYZ'); % reconstruct rotation matrix from euler angles (anti-clockwise,rad)
+    R_mat=eul2rotm(eps(1:3)','XYZ'); % reconstruct rotation matrix from euler angles (anti-clockwise,rad)
     % t_os
     t_vec = eps(4:6); % translation vector
     
