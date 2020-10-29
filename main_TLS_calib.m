@@ -28,9 +28,12 @@ max_ex_iter=5;                         % max iteration number for the external l
 incre_ratio_thre = 1e-3;               % internal loop convergence condition
 delta_t = 1e-7;                        % delta_d for numerical derivative
 
-% pirpr knowledge for observation plausibility check
-max_rou = 10.0;                        % max pausible range measurement value (m)  
-max_alpha = 90*deg2rad_ratio;          % max pausible elevation angle value (rad)
+% prior knowledge for observation plausibility check
+max_rou = 10.0;                       % max pausible range measurement value (m)  
+max_alpha = 90*deg2rad_ratio;         % max pausible elevation angle value (rad)
+
+% values for danish method
+
 
 %% I. Import data
 
