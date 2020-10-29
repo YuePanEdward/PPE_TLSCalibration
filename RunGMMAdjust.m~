@@ -91,10 +91,9 @@ while (iter_count < adjustment_data_struct.max_iter_count && ~is_converged)
     end
     
     % update
-    for i=1:scan_count % keep the angle under the bound of [-pi pi]
-        x_0(ap_count+6*i-5:ap_count+6*i-3) = wrapToPi(x_0(ap_count+6*i-5:ap_count+6*i-3));
+    for i=1:scan_count
+        x_0(ap_count+6*i-5:ap_count+6*i-3) = wrapToPi(xi(4+6*i-5:4+6*i-3));
     end
-    
     iter_count = iter_count + 1;
     d_x_last = d_x;
     

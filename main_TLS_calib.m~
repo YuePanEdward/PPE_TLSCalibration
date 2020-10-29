@@ -17,20 +17,19 @@ disp('PPE TLS calibration software');
 % Define constants
 % measurment standard deviation:
 deg2rad_ratio=pi/180;
-sigma_0 = 0.001;                       % prior unit weight standard deviation (m)
-sigma_rho = 0.002;                     % range measurment (m)
-sigma_theta = 0.005*deg2rad_ratio;     % horizontal angle (rad) 
-sigma_alpha = 0.005*deg2rad_ratio;     % vertical angle (rad)
+sigma_0 = 0.001;                      % prior unit weight standard deviation (m)
+sigma_rho = 0.002;                    % range measurment (m)
+sigma_theta = 0.00*deg2rad_ratio;     % horizontal angle (rad) 
+sigma_alpha = 0.01*deg2rad_ratio;     % vertical angle (rad)
 
 % iteration thresholds
-max_in_iter=20;                        % max iteration number for the internal loop (for gauss-markov parameter estimation)
-max_ex_iter=5;                         % max iteration number for the external loop (for danish outlier detection and removal)
-incre_ratio_thre = 1e-3;               % internal loop convergence condition
-delta_t = 1e-7;                        % delta_d for numerical derivative
+max_in_iter=20;                       % max iteration number for the internal loop (for gauss-markov parameter estimation)
+max_ex_iter=5;                       % max iteration number for the external loop (for danish outlier detection and removal)
+incre_ratio_thre = 1e-3;              % internal loop convergence condition
 
 % pirpr knowledge for observation plausibility check
-max_rou = 10.0;                        % max pausible range measurement value (m)  
-max_alpha = 90*deg2rad_ratio;          % max pausible elevation angle value (rad)
+max_rou = 10.0;                       % max pausible range measurement value (m)  
+max_alpha = 90*deg2rad_ratio;         % max pausible elevation angle value (rad)
 
 %% I. Import data
 
@@ -38,8 +37,8 @@ disp('---------I. Data Import--------');
 
 % Set the data path and prefix here
 % [Test_data]
-% data_path = strcat ('Test_data', filesep, 'Testdata_1');        
-% data_prefix = 'PPE_TLS_T1_';  
+%data_path = strcat ('Test_data', filesep, 'Testdata_1');        
+%data_prefix = 'PPE_TLS_T1_';  
 % data_path = strcat ('Test_data', filesep, 'Testdata_2');      
 % data_prefix = 'PPE_TLS_T2_';   
 
@@ -113,7 +112,7 @@ x_0=zeros(unknown_count, 1); % the initial value for 4 APs are assigned as 0
 % for each scan, estimate the initial guess of eps (To,s: the 6DOF transformation from scanner to objective coordinate system)
 for i=1:scan_count
    % input: source , target point cloud (matched with the same order),
-   % output: transformation parameters: [omega(rx), phi(ry), kappa(rz), tx, ty, tz] %
+   % output: transformation parameters: [roll, pitch, yaw, tx, ty, tz] %
    % tran source (station) to target (object)
    x_0(ap_count+6*(i-1)+1:ap_count+6*(i-1)+6)=EstimateTranFromCorr(scans_in_cart{i}, ops); % using SVD (Horn, 1987)
 end
@@ -123,6 +122,8 @@ disp(['Assign the initial value for [', num2str(unknown_count), '] unknowns done
 %% IV. Conduct adjustment
 
 disp('---------V. Apply adjustment iteratively--------');
+
+delta_t = 1e-8; % delta_d for numerical derivative
 
 ob_count = 3 * op_count * scan_count; % n = 3Ns
 
@@ -138,7 +139,7 @@ disp(['Assign the obsevartion vector for [', num2str(ob_count), '] observations 
 % construct variance-covariance matrix
 sigma_obs=[sigma_rho,sigma_theta,sigma_alpha];
 sigma_obs_repeat=repmat(sigma_obs',ob_count/3,1);
-K_mat=diag(sigma_obs_repeat.^2);  % variance-covariance matrix K
+K_mat=diag(sigma_obs_repeat);  % variance-covariance matrix K
 % sigma_0: a prior unit weight standard deviation              
 Q_mat = (1.0/(sigma_0^2))*K_mat;  % cofactor matrix
 P_mat_0 = inv(Q_mat);             % initial weight matrix
@@ -195,8 +196,7 @@ while (~danish_converged && iter_count < max_ex_iter)
    else
           danish_f=3.0;
    end
-   danish_ratio = (exp(-(abs(res_vec)./sigma_obs_repeat).^danish_f)).^0.05;
-   w_vec = diag(P_mat_0).* danish_ratio; % diagonal weight vector
+   w_vec = diag(P_mat_0).* (exp(-(abs(res_vec)./sigma_obs_repeat).^danish_f)).^0.05; % diagonal weight vector
    temp_adjustment_data.P = diag(w_vec); % update weight matrix
    
    iter_count=iter_count+1;
