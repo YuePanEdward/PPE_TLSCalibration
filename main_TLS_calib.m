@@ -292,26 +292,28 @@ figure(2);
 for i=1:scan_count
    plot_scanner(x_p(i*6-1:i*6+4),i,2);
 end
-scatter3(ops(:,1),ops(:,2),ops(:,3),'m','filled');
+scatter3(ops(:,1),ops(:,2),ops(:,3),15,'m','filled');
 xlabel('X(m)');
 ylabel('Y(m)');
 zlabel('Z(m)');
+%legend('scanner position', 'scanner x-axis','scanner y-axis', 'scanner z-axis', 'ops', 'Location','southoutside');
 title('Overview of the scanners and the points');
 
 % Plot the measurement of each scanner
 figure(3);
 for i=1:scan_count
    subplot(1,scan_count,i);
-   plot_scanner(ones(6,1),i,3);
+   plot_scanner(zeros(6,1),i,3);
    inliers=scans_in_cart{i}((max(measurement_status{i}'))==0,:);
    pausibility_outliers=scans_in_cart{i}((max(measurement_status{i}'))==1,:);
    dannish_outliers=scans_in_cart{i}((max(measurement_status{i}'))==2,:);
-   scatter3(inliers(:,1),inliers(:,2),inliers(:,3),'g','filled');
-   scatter3(pausibility_outliers(:,1),pausibility_outliers(:,2),pausibility_outliers(:,3),'r','filled');
-   scatter3(dannish_outliers(:,1),dannish_outliers(:,2),dannish_outliers(:,3),'b','filled');
+   scatter3(inliers(:,1),inliers(:,2),inliers(:,3),15,'g','filled');
+   scatter3(pausibility_outliers(:,1),pausibility_outliers(:,2),pausibility_outliers(:,3),15,'r','filled');
+   scatter3(dannish_outliers(:,1),dannish_outliers(:,2),dannish_outliers(:,3),15,'b','filled');
    xlabel('X(m)');
    ylabel('Y(m)');
    zlabel('Z(m)');
+   legend('scanner position', 'scanner x-axis','scanner y-axis', 'scanner z-axis', 'inlier measurement', 'outlier detected by plausibility check', 'outlier detected by Danish method','Location','southoutside');
 end
 %title('measurements of each scanner (green: inlier, red: outlier from plausibility check, blue: outlier from danish method)');
 
