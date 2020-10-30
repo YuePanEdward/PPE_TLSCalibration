@@ -23,8 +23,8 @@ close all
 clear all
 clc
 
-disp('PPE TLS calibration software');
-
+disp('PPE TLS calibration solution');
+disp('By Yue Pan & Fandré Josianne');
 % Define constants
 % measurment standard deviation:
 deg2rad_ratio=pi/180;
@@ -33,18 +33,21 @@ sigma_rho = 0.002;                     % range measurment (m)
 sigma_theta = 0.005*deg2rad_ratio;     % horizontal angle (rad) 
 sigma_alpha = 0.005*deg2rad_ratio;     % vertical angle (rad)
 
+% delta_d for numerical derivative
+delta_t = 1e-8;                        
+
 % iteration thresholds
 max_in_iter=20;                        % max iteration number for the internal loop (for gauss-markov parameter estimation)
-max_ex_iter=5;                         % max iteration number for the external loop (for danish outlier detection and removal)
-incre_ratio_thre = 1e-3;               % internal loop convergence condition
-delta_t = 1e-7;                        % delta_d for numerical derivative
+max_ex_iter=10;                        % max iteration number for the external loop (for danish outlier detection and removal)
+incre_ratio_thre = 1e-5;               % internal loop convergence condition
+danish_converge_thre = 1e-2;           % external loop convergence condition
 
 % prior knowledge for observation plausibility check
-max_rou = 10.0;                       % max pausible range measurement value (m)  
-max_alpha = 90*deg2rad_ratio;         % max pausible elevation angle value (rad)
+max_rou = 10.0;                        % max pausible range measurement value (m)  
+max_alpha = 80*deg2rad_ratio;          % max pausible elevation angle value (rad)
 
-% values for danish method
-
+% outlier threshold for danish method
+danish_ratio_thre = 2.0;               % x sigma
 
 %% I. Import data
 
@@ -58,10 +61,10 @@ disp('---------I. Data Import--------');
 % data_prefix = 'PPE_TLS_T2_';   
 
 % [Final_data (with outlier)]
-data_path = strcat ('Final_data', filesep, 'Finaldata_1');        
-data_prefix = 'PPE_TLS_Fa_';  
-% data_path = strcat ('Final_data', filesep, 'Finaldata_2');      
-% data_prefix = 'PPE_TLS_Fb_'; 
+% data_path = strcat ('Final_data', filesep, 'Finaldata_1');        
+% data_prefix = 'PPE_TLS_Fa_';  
+data_path = strcat ('Final_data', filesep, 'Finaldata_2');      
+data_prefix = 'PPE_TLS_Fb_'; 
 
 % use filesep to represent / or \ on different operating system
 scans_path=strcat(data_path, filesep, 'Scans', filesep); 
@@ -95,10 +98,10 @@ disp(['Cart2Spher convertion done for [',num2str(scan_count), '] scans']);
 
 
 
-%% (Optional: plausibility check)
+%% III. (Optional) plausibility check
 disp('---------III. Pre-plausibility check--------');
 
-outlier_mask=ones(op_count * scan_count, 1);
+point_outlier_mask=ones(op_count * scan_count,1); % take each point
 pre_outlier_count=0;
 
 % Regard those measurements with too large range and elevation angle as outlier
@@ -106,15 +109,18 @@ for i=1:scan_count
     for j=1:op_count
         temp_rou = scans_in_sphe{i}(j,1);
         temp_alpha = scans_in_sphe{i}(j,3);
-        if(temp_rou > max_rou || temp_alpha > max_alpha)
-            outlier_mask((i-1)*op_count+j,1)=0;
-            pre_outlier_count=pre_outlier_count+1;
-        end        
+        if(temp_rou > max_rou || temp_alpha > max_alpha)    
+            point_outlier_mask((i-1)*op_count+j)=0; % the point (3 observations) would be regard as outlier
+            pre_outlier_count=pre_outlier_count+1;  
+        end 
     end
 end
 disp(['Pre-plausibility check done for [',num2str(op_count * scan_count), '] measurements, [', num2str(pre_outlier_count), '] outliers found.']);   
 
-%% III. Get initial guess
+outlier_mask_rep = repmat(point_outlier_mask, [3,1]);
+outlier_mask= outlier_mask_rep(:); % take each coordinate measurement
+
+%% IV. Get initial guess
 
 disp('---------IV. Assign initial guess of unknowns--------');
 
@@ -129,13 +135,16 @@ for i=1:scan_count
    % input: source , target point cloud (matched with the same order),
    % output: transformation parameters: [omega(rx), phi(ry), kappa(rz), tx, ty, tz] %
    % tran source (station) to target (object)
+   
+   % only use the measurements pass the pre-plausibility check
+   % (point_outlier_mask)
    x_0(ap_count+6*(i-1)+1:ap_count+6*(i-1)+6)=EstimateTranFromCorr(scans_in_cart{i}, ops); % using SVD (Horn, 1987)
 end
 
 disp(['Assign the initial value for [', num2str(unknown_count), '] unknowns done']);
 disp_unknown_vector(x_0,ap_count,scan_count);
 
-%% IV. Conduct adjustment
+%% V. Conduct adjustment
 
 disp('---------V. Apply adjustment iteratively--------');
 
@@ -153,9 +162,9 @@ disp(['Assign the obsevartion vector for [', num2str(ob_count), '] observations 
 % construct variance-covariance matrix
 sigma_obs=[sigma_rho,sigma_theta,sigma_alpha];
 sigma_obs_repeat=repmat(sigma_obs',ob_count/3,1);
-K_mat=diag(sigma_obs_repeat.^2);  % variance-covariance matrix K
+D_mat=diag(sigma_obs_repeat.^2);  % variance-covariance matrix D
 % sigma_0: a prior unit weight standard deviation              
-Q_mat = (1.0/(sigma_0^2))*K_mat;  % cofactor matrix
+Q_mat = (1.0/(sigma_0^2))*D_mat;  % cofactor matrix
 P_mat_0 = inv(Q_mat);             % initial weight matrix
 
 disp('Assign the initial weight matrix done');
@@ -163,9 +172,6 @@ disp('Assign the initial weight matrix done');
 x_temp=x_0; % assign initial value for unknown vector
 P_mat_temp=P_mat_0;
 ex_iter_count=0;
-
-% External loop for detecting and removing outliers 
-
 
 % Introduce the structure temp_adjustment_data
 % the definition of each field: 
@@ -185,7 +191,6 @@ ex_iter_count=0;
 %  the loop would be regarded as converged
 %  - outlier_mask: mask vector for the measurements, 0 and 1 indicate the
 %  outlier and inlier respectively
-
 temp_adjustment_data = struct('x',x_temp, 'y',y, 'P',P_mat_temp, 'sigma_0',...
    sigma_0, 'dt', delta_t, 'op', ops, 'scans', {scans_in_sphe}, 'ap_count',...
    ap_count, 'max_iter_count', max_in_iter, 'incre_ratio_thre', incre_ratio_thre,...
@@ -194,28 +199,115 @@ temp_adjustment_data = struct('x',x_temp, 'y',y, 'P',P_mat_temp, 'sigma_0',...
 % [solved issue]: to put the cell array into a struct, you need to use { }
 % outside the cell array to make it a cell
 
-iter_count=1;
+iter_count=1; % external loop iteration number
 danish_converged=0;
+w_vec_last=diag(P_mat_0);
 
+% External loop for detecting and removing outliers (Danish method)
 while (~danish_converged && iter_count < max_ex_iter)
 % iterate until reaching the termination criteria
    
-   disp(['----Danish iteration [', num2str(iter_count), '] ----']);
+   disp(['--------Danish Method iteration [', num2str(iter_count), ']--------']);
    % Adjustment calculation
    [x_p, Q_xx_mat, res_vec]= RunGMMAdjust(temp_adjustment_data);
    
-   % TODO: mask those measurements with too small weight
+   % Danish method weight updating
+   % TODO: mask those measurements with too small weight as outliers
+   % find the outlier index among current inliers according to dannish method
+   danish_index = find(temp_adjustment_data.outlier_mask.*abs(res_vec)./sigma_obs_repeat > danish_ratio_thre); 
+   danish_ratio = ones(ob_count,1);
+   
+   % Danish method coefficient
    if (iter_count<3) 
           danish_f=4.4;
    else
           danish_f=3.0;
    end
-   danish_ratio = (exp(-(abs(res_vec)./sigma_obs_repeat).^danish_f)).^0.05;
+   danish_ratio(danish_index) = (exp(-(abs(res_vec(danish_index))./sigma_obs_repeat(danish_index)).^danish_f)).^0.05;
    w_vec = diag(P_mat_0).* danish_ratio; % diagonal weight vector
    temp_adjustment_data.P = diag(w_vec); % update weight matrix
    
+   disp(['[' , num2str(size(danish_index,1)), '] candidate outliers found by Danish Method, downweight them.']);
+   
+   % Judge convergence
+   d_w = abs(w_vec-w_vec_last)./diag(P_mat_0);
+   if(max(d_w) < danish_converge_thre)
+       danish_converged=1;
+       disp('Danish method loop converged');
+   end 
+
    iter_count=iter_count+1;
+   w_vec_last=w_vec;
    
 end
+
+%% VI. Results output and visualization
+
+disp('---------VI. Calibration results output and visualization--------');
+
+% statistics
+D_xx=sigma_0^2 * Q_xx_mat;                   % variance-covariance matrix of the estimated unknowns
+sigma_xx=sqrt(diag(D_xx));                   % standard deviation of the estimated unknowns 
+C_xx=D_xx./(sigma_xx*sigma_xx');             % correlation matrix of the estimated unknowns
+
+% final unkonown estimation
+disp('Final adjustment results of the unknown vector:');
+disp_unknown_vector_std(x_p,sigma_xx,ap_count,scan_count);
+
+% final outliers
+outliers_by_plausibility_check=find(~outlier_mask);
+outliers_by_danish_method=danish_index;
+outliers_by_plausibility_check_count = size(outliers_by_plausibility_check,1);
+outliers_by_danish_method_count = size(outliers_by_danish_method,1);
+total_outlier_count=outliers_by_plausibility_check_count+outliers_by_danish_method_count;
+fprintf('[%d] outliers found, [%d] by plausibility check, [%d] by danish method\n', total_outlier_count,outliers_by_plausibility_check_count,outliers_by_danish_method_count);
+
+outliers_by_plausibility_check_scan=cell(1,scan_count);
+outliers_by_danish_method_scan=cell(1,scan_count);
+measurement_status=cell(1,scan_count);
+for i=1:scan_count
+    outliers_by_plausibility_check_scan{i}=outliers_by_plausibility_check(outliers_by_plausibility_check<=3*i*op_count & outliers_by_plausibility_check>3*(i-1)*op_count);
+    outliers_by_danish_method_scan{i}=outliers_by_danish_method(outliers_by_danish_method<=3*i*op_count & outliers_by_danish_method>3*(i-1)*op_count);
+    measurement_status{i}=zeros(ob_count,1);
+    %measurement_status{i}(floor(outliers_by_plausibility_check_scan{i}./3)
+end
+
+
+unknown_name={'a0','b1','b2','c0'};
+for i=1:scan_count
+   unknown_name = {unknown_name{:}, ['omega', num2str(i)],['phi', num2str(i)],['kappa', num2str(i)],['X', num2str(i)],['Y', num2str(i)],['Z', num2str(i)]};
+end
+
+% Plot the posterior covariance matrix
+figure(1);
+set(gcf,'Position',[100 100 1800 600])
+subplot(121);
+heatmap(unknown_name, unknown_name, abs(D_xx), 'ColorScaling','log', 'Colormap', hot, 'Title', 'Posterior Covariance');
+
+% Plot the posterior correlation matrix
+subplot(122);
+heatmap(unknown_name, unknown_name, C_xx, 'Colormap', jet, 'Title', 'Posterior Correlation');
+
+% Plot the scanner and the ops
+figure(2);
+for i=1:scan_count
+   plot_scanner(x_p(i*6-1:i*6+4),i,2);
+end
+scatter3(ops(:,1),ops(:,2),ops(:,3),'m','filled');
+xlabel('X(m)');
+ylabel('Y(m)');
+zlabel('Z(m)');
+title('Overview of the scanners and the points');
+
+% Plot the measurement of each scanner
+figure(3);
+for i=1:scan_count
+   subplot(1,scan_count,i);
+   plot_scanner(ones(6,1),i,3);
+   inliers=scans_in_cart{i};
+   %inliers([outliers_by_plausibility_check_scan{i};outliers_by_danish_method_scan{i}],:)=[];
+   scatter3(inliers(:,1),inliers(:,2),inliers(:,3),'g','filled');
+end
+
 
 

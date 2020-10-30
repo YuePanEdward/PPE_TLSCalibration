@@ -27,12 +27,13 @@ dt=adjustment_data_struct.dt;
 ops=adjustment_data_struct.op;
 scans_sphe=adjustment_data_struct.scans;
 ap_count=adjustment_data_struct.ap_count;
+inlier_index = find(adjustment_data_struct.outlier_mask);
+outlier_index = find(~adjustment_data_struct.outlier_mask);
 
-
-scan_count=length(scans_sphe);  %s
-op_count=size(ops,1);           %N
-unknown_count=ap_count+6*scan_count;   %u
-ob_count=3*op_count*scan_count;  %n
+scan_count=length(scans_sphe);        %s
+op_count=size(ops,1);                 %N
+unknown_count=ap_count+6*scan_count;  %u
+ob_count=3*op_count*scan_count;       %n
 
 
 iter_count = 1;
@@ -70,13 +71,18 @@ while (iter_count < adjustment_data_struct.max_iter_count && ~is_converged)
        end
     end
     
+    % apply the outlier mask
+    A_mat_in = A_mat(inlier_index,:);
+    P_mat_in = P_mat(inlier_index,inlier_index);
+    b_vec_in = b_vec(inlier_index);
     
     % Conduct adjustment (get the increment of unknown vector for current iteration)
-    N_mat=(A_mat' * P_mat * A_mat);  % normal matrix
+    N_mat=(A_mat_in' * P_mat_in * A_mat_in);  % normal matrix
     Q_xx_mat = N_mat^(-1);
-    d_x =Q_xx_mat * (A_mat' * P_mat * b_vec);
+    d_x =Q_xx_mat * (A_mat_in' * P_mat_in * b_vec_in);
     
-    res_vec= A_mat*d_x -b_vec; % residual
+    res_vec= A_mat*d_x -b_vec;  % residual
+    %res_vec(outlier_index) = 0; % we do not want to involve them in Danish methods updating
     
     %disp(['Increment of the unknown vector of iteration [', num2str(iter_count) , ']:', num2str(x_i)]);
     
@@ -86,8 +92,10 @@ while (iter_count < adjustment_data_struct.max_iter_count && ~is_converged)
     
     % judge if the convergence is reached
     if(iter_count>1 && max(abs(d_x)) < adjustment_data_struct.incre_ratio_thre) % for example : 1e-4
+    %if(iter_count>1 && max(abs(d_x./d_x_last)) <
+    %adjustment_data_struct.incre_ratio_thre) % for example : 1e-2
         is_converged = 1;
-        disp ('converged'); 
+        disp ('Inner-loop Converged'); 
     end
     
     % update
@@ -103,7 +111,7 @@ end
 % why do you not give out just x_0 instead of saving it separatly as x_p
 % solved (directly use x_0) -- Yue
  
-disp('Adjustment results of the unknown vector: ');
+disp('Current adjustment results of the unknown vector:');
 disp_unknown_vector(x_0,ap_count,scan_count);
 
 
