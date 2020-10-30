@@ -281,7 +281,7 @@ end
 figure(1);
 set(gcf,'Position',[100 100 1800 600])
 subplot(121);
-heatmap(unknown_name, unknown_name, abs(D_xx), 'ColorScaling','log', 'Colormap', hot, 'Title', 'Posterior Covariance');
+heatmap(unknown_name, unknown_name, abs(D_xx), 'ColorScaling','log', 'Colormap', jet, 'Title', 'Posterior Covariance');
 
 % Plot the posterior correlation matrix
 subplot(122);

@@ -15,10 +15,10 @@ deg2rad_ratio=pi/180;
 % end
 % fprintf('\n'); 
 disp('APs:')
-fprintf('a0 = %8.3f ( m )\t+-%5.2f ( mm )\n',x_vec(1), sigma_x(1)*1e3);
-fprintf('b1 = %8.3f (deg)\t+-%5.2f (mdeg)\n',x_vec(2)/deg2rad_ratio, sigma_x(2)/deg2rad_ratio*1e3);
-fprintf('b2 = %8.3f (deg)\t+-%5.2f (mdeg)\n',x_vec(3)/deg2rad_ratio, sigma_x(3)/deg2rad_ratio*1e3);
-fprintf('c0 = %8.3f (deg)\t+-%5.2f (mdeg)\n\n',x_vec(4)/deg2rad_ratio, sigma_x(4)/deg2rad_ratio*1e3);
+fprintf('a0 = %8.3f ( mm )\t+-%5.2f ( mm )\n',x_vec(1)*1e3, sigma_x(1)*1e3);
+fprintf('b1 = %8.3f (mdeg)\t+-%5.2f (mdeg)\n',x_vec(2)/deg2rad_ratio*1e3, sigma_x(2)/deg2rad_ratio*1e3);
+fprintf('b2 = %8.3f (mdeg)\t+-%5.2f (mdeg)\n',x_vec(3)/deg2rad_ratio*1e3, sigma_x(3)/deg2rad_ratio*1e3);
+fprintf('c0 = %8.3f (mdeg)\t+-%5.2f (mdeg)\n\n',x_vec(4)/deg2rad_ratio*1e3, sigma_x(4)/deg2rad_ratio*1e3);
 
 for i=1:scan_count
     disp(['EPs of scan [', num2str(i), ']:']); 
