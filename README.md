@@ -1,5 +1,7 @@
 # PPE_TLSCalibration
-### Codes for TLS calibration of [project parameter estimation (PPE) course (HS2020) @ ETHZ](http://www.vvz.ethz.ch/Vorlesungsverzeichnis/lerneinheit.view?lerneinheitId=124391&semkez=2018W&lang=en)
+### Codes for TLS calibration 
+
+#### *for [project parameter estimation (PPE) course (HS2020) @ ETHZ](http://www.vvz.ethz.ch/Vorlesungsverzeichnis/lerneinheit.view?lerneinheitId=124391&semkez=2018W&lang=en)*
 
 #### Group member: Yue Pan & Fandré Josianne
 
@@ -7,7 +9,7 @@
 
 -----
 
-#### Goal: Parameter estimation for the calibration (extrinsic & intrinsic coefficients) of terrestrial laser scanner (TLS)
+#### Goal: Parameter estimation for the extrinsic & intrinsic calibration of terrestrial laser scanner (TLS)
 
 #### Environment and Prerequisites:  Matlab (2019 or higher) with navigation toolbox
 
