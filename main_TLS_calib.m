@@ -61,10 +61,10 @@ disp('---------I. Data Import--------');
 % data_prefix = 'PPE_TLS_T2_';   
 
 % [Final_data (with outlier)]
-% data_path = strcat ('Final_data', filesep, 'Finaldata_1');        
-% data_prefix = 'PPE_TLS_Fa_';  
-data_path = strcat ('Final_data', filesep, 'Finaldata_2');      
-data_prefix = 'PPE_TLS_Fb_'; 
+data_path = strcat ('Final_data', filesep, 'Finaldata_1');        
+data_prefix = 'PPE_TLS_Fa_';  
+% data_path = strcat ('Final_data', filesep, 'Finaldata_2');      
+% data_prefix = 'PPE_TLS_Fb_'; 
 
 % use filesep to represent / or \ on different operating system
 scans_path=strcat(data_path, filesep, 'Scans', filesep); 
@@ -117,7 +117,7 @@ for i=1:scan_count
 end
 disp(['Pre-plausibility check done for [',num2str(op_count * scan_count), '] measurements, [', num2str(pre_outlier_count), '] outliers found.']);   
 
-outlier_mask_rep = repmat(point_outlier_mask, [3,1]);
+outlier_mask_rep = repmat(point_outlier_mask, [1,3])';
 outlier_mask= outlier_mask_rep(:); % take each coordinate measurement
 
 %% IV. Get initial guess
@@ -262,14 +262,13 @@ outliers_by_danish_method_count = size(outliers_by_danish_method,1);
 total_outlier_count=outliers_by_plausibility_check_count+outliers_by_danish_method_count;
 fprintf('[%d] outliers found, [%d] by plausibility check, [%d] by danish method\n', total_outlier_count,outliers_by_plausibility_check_count,outliers_by_danish_method_count);
 
-outliers_by_plausibility_check_scan=cell(1,scan_count);
-outliers_by_danish_method_scan=cell(1,scan_count);
+observation_status=zeros(ob_count,1);
+observation_status(outliers_by_plausibility_check)=1;
+observation_status(outliers_by_danish_method)=2;
 measurement_status=cell(1,scan_count);
 for i=1:scan_count
-    outliers_by_plausibility_check_scan{i}=outliers_by_plausibility_check(outliers_by_plausibility_check<=3*i*op_count & outliers_by_plausibility_check>3*(i-1)*op_count);
-    outliers_by_danish_method_scan{i}=outliers_by_danish_method(outliers_by_danish_method<=3*i*op_count & outliers_by_danish_method>3*(i-1)*op_count);
-    measurement_status{i}=zeros(ob_count,1);
-    %measurement_status{i}(floor(outliers_by_plausibility_check_scan{i}./3)
+    scan_obs=observation_status((i-1)*3*op_count+1: i*3*op_count);
+    measurement_status{i}=reshape(scan_obs,[3,op_count])';
 end
 
 
@@ -304,10 +303,18 @@ figure(3);
 for i=1:scan_count
    subplot(1,scan_count,i);
    plot_scanner(ones(6,1),i,3);
-   inliers=scans_in_cart{i};
-   %inliers([outliers_by_plausibility_check_scan{i};outliers_by_danish_method_scan{i}],:)=[];
+   inliers=scans_in_cart{i}((max(measurement_status{i}'))==0,:);
+   pausibility_outliers=scans_in_cart{i}((max(measurement_status{i}'))==1,:);
+   dannish_outliers=scans_in_cart{i}((max(measurement_status{i}'))==2,:);
    scatter3(inliers(:,1),inliers(:,2),inliers(:,3),'g','filled');
+   scatter3(pausibility_outliers(:,1),pausibility_outliers(:,2),pausibility_outliers(:,3),'r','filled');
+   scatter3(dannish_outliers(:,1),dannish_outliers(:,2),dannish_outliers(:,3),'b','filled');
+   xlabel('X(m)');
+   ylabel('Y(m)');
+   zlabel('Z(m)');
 end
+%title('measurements of each scanner (green: inlier, red: outlier from plausibility check, blue: outlier from danish method)');
+
 
 
 
