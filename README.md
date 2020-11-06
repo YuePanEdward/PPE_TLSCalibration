@@ -25,13 +25,15 @@
 
 *For more details and experiment results, please check our final report.*
 
+#### Codes achetecture:
+
+<img src="document/test_img/softwareArchitecture.png" alt="alt text" style="zoom:50%;"/>
+
 #### Demo:
 
 #### <img src="document/test_img/show_covariance_correlation_finaldata_1.jpg" alt="alt text" style="zoom:50%;"/>
 
-<img src="document/test_img/show_scanners_ops_finaldata_1.jpg" alt="alt text" style="zoom:80%;"/>
-
-<img src="document/test_img/show_each_scanner_finaldata_1.jpg" alt="alt text" style="zoom:50%;"/>
+<img src="document/test_img/finaldata_1.png" alt="alt text" style="zoom:50%;"/>
 
 -----
 
