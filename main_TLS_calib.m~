@@ -13,7 +13,7 @@
 % equation:
 % p_i   =  R_io * (p_o - t_oi)
 % namely, 
-% p_i   =  Rx(omega) * Ry(phi) * Rz(kappa) * (p_o - [t_x, t_y, t_z]'),
+% p_i   =  Rx(omega) * Ry(phi) * Rz(keppa) * (p_o - [t_x, t_y, t_z]'),
 % where p_i is the point coordinate in scanner i's coordinate system
 % p_o is the point coordinate in external object coordinate system
 
@@ -44,7 +44,7 @@ danish_converge_thre = 1e-2;           % external loop convergence condition
 
 % prior knowledge for observation plausibility check
 max_rou = 10.0;                        % max plausible range measurement value (m)  
-max_alpha = 80*deg2rad_ratio;          % max plausible elevation angle value (rad)
+max_alpha = 85*deg2rad_ratio;          % max plausible elevation angle value (rad)
 max_incidence = 65*deg2rad_ratio;      % amx plausible incidence angle value (rad)
 
 % outlier threshold for danish method
@@ -62,10 +62,10 @@ disp('---------I. Data Import--------');
 % data_prefix = 'PPE_TLS_T2_';   
 
 % [Final_data (with outlier)]
-data_path = strcat ('Final_data', filesep, 'Finaldata_1');        
-data_prefix = 'PPE_TLS_Fa_';  
-% data_path = strcat ('Final_data', filesep, 'Finaldata_2');      
-% data_prefix = 'PPE_TLS_Fb_'; 
+% data_path = strcat ('Final_data', filesep, 'Finaldata_1');        
+% data_prefix = 'PPE_TLS_Fa_';  
+data_path = strcat ('Final_data', filesep, 'Finaldata_2');      
+data_prefix = 'PPE_TLS_Fb_'; 
 
 % use filesep to represent / or \ on different operating system
 scans_path=strcat(data_path, filesep, 'Scans', filesep); 
@@ -288,40 +288,39 @@ heatmap(unknown_name, unknown_name, abs(D_xx), 'ColorScaling','log', 'Colormap',
 subplot(122);
 heatmap(unknown_name, unknown_name, C_xx, 'Colormap', jet, 'Title', 'Posterior Correlation');
 
-plot_points_size=25;
-
 % Plot the scanner and the ops
 figure(2);
-subplot(1,scan_count+1,1);
 for i=1:scan_count
    plot_scanner(x_p(i*6-1:i*6+4),i,2);
 end
-scatter3(ops(:,1),ops(:,2),ops(:,3),plot_points_size,'m','filled');
+scatter3(ops(:,1),ops(:,2),ops(:,3),15,'m','filled');
 xlabel('X(m)');
 ylabel('Y(m)');
 zlabel('Z(m)');
 %legend('scanner position', 'scanner x-axis','scanner y-axis', 'scanner z-axis', 'ops', 'Location','southoutside');
-%title('Overview of the scanners and the points');
+title('Overview of the scanners and the points');
 
 % Plot the measurement of each scanner
 %figure(3);
-figure(2)
 for i=1:scan_count
    subplot(1,scan_count+1,i+1);
-   plot_scanner(zeros(6,1),i,2);
+   plot_scanner(zeros(6,1),i,3);
    inliers=scans_in_cart{i}((max(measurement_status{i}'))==0,:);
    pausibility_outliers=scans_in_cart{i}((max(measurement_status{i}'))==1,:);
    dannish_outliers=scans_in_cart{i}((max(measurement_status{i}'))==2,:);
-   scatter3(inliers(:,1),inliers(:,2),inliers(:,3),plot_points_size,'g','filled');
-   scatter3(pausibility_outliers(:,1),pausibility_outliers(:,2),pausibility_outliers(:,3),plot_points_size,'r','filled');
-   scatter3(dannish_outliers(:,1),dannish_outliers(:,2),dannish_outliers(:,3),plot_points_size,'b','filled');
+   scatter3(inliers(:,1),inliers(:,2),inliers(:,3),20,'g','filled');
+   scatter3(pausibility_outliers(:,1),pausibility_outliers(:,2),pausibility_outliers(:,3),20,'r','filled');
+   scatter3(dannish_outliers(:,1),dannish_outliers(:,2),dannish_outliers(:,3),2,'b','filled');
    xlabel('X(m)');
    ylabel('Y(m)');
    zlabel('Z(m)');
-   %legend('scanner position', 'scanner x-axis','scanner y-axis', 'scanner z-axis', 'inlier measurement', 'outlier detected by plausibility check', 'outlier detected by Danish method','Location','southoutside');
+   legend('scanner position', 'scanner x-axis','scanner y-axis', 'scanner z-axis', 'inlier measurement', 'outlier detected by plausibility check', 'outlier detected by Danish method','Location','southoutside');
 end
 %title('measurements of each scanner (green: inlier, red: outlier from plausibility check, blue: outlier from danish method)');
 
 
+% TODO List: 
+% 1. Reliability check
+% 2. Selection of the derivative variation t (experiment)
 
 
