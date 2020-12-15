@@ -7,6 +7,7 @@
 
 #### Supervisor: Prof.  Andreas Wieser
 
+#### Link to project II of PPE: [Kriging](https://github.com/YuePanEdward/PPE_Kriging)
 -----
 
 #### Goal: Parameter estimation for the extrinsic & intrinsic calibration of terrestrial laser scanner (TLS)
